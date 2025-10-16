@@ -1,7 +1,7 @@
-# Dynamic Quote Generator
+# Dynamic Quote Generator with Web Storage
 
 ## Project Overview
-A dynamic web application that generates and displays quotes based on user-selected categories, with functionality to add new quotes through an interactive interface.
+A fully-featured dynamic web application that generates and displays quotes with persistent storage, category filtering, and JSON import/export capabilities. All data persists across browser sessions using Web Storage APIs.
 
 ## Repository Structure
 ```
@@ -20,192 +20,111 @@ alx_fe_javascript/
 3. **Dynamic Quote Addition**: Add new quotes with custom categories
 4. **Real-time DOM Updates**: All changes reflect immediately without page reload
 
-### Advanced DOM Manipulation Techniques Used
+### Web Storage Integration ⭐ NEW
+5. **Local Storage Persistence**: Quotes automatically saved and loaded across sessions
+6. **Session Storage Tracking**: Tracks last viewed quote and view count per session
+7. **JSON Export**: Download all quotes as a formatted JSON file
+8. **JSON Import**: Upload and merge quotes from JSON files
+9. **Storage Management**: Clear all data and reset to defaults
 
-#### 1. Dynamic Element Creation
+## Web Storage Implementation
+
+### Local Storage Features
+
+#### Automatic Saving
+Every time a quote is added, the entire collection is automatically saved:
 ```javascript
-const quoteText = document.createElement('p');
-quoteText.className = 'quote-text';
-quoteText.textContent = `"${randomQuote.text}"`;
-```
-
-#### 2. DOM Traversal and Manipulation
-- `getElementById()`: Direct element access
-- `innerHTML`: Complete content replacement
-- `appendChild()`: Adding elements to DOM tree
-
-#### 3. Event Handling
-- Click events on buttons
-- Change events on select dropdown
-- Keyboard events (Enter key) for form submission
-
-#### 4. Dynamic Style Manipulation
-- Inline styles via `element.style`
-- CSS animations triggered via JavaScript
-- Dynamic style injection
-
-#### 5. Array Manipulation & Filtering
-- `filter()`: Category-based quote filtering
-- `map()`: Extract unique categories
-- `Set`: Remove duplicate categories
-
-## Key Functions
-
-### `showRandomQuote()`
-Displays a random quote from the filtered collection:
-- Filters quotes by selected category
-- Randomly selects a quote
-- Creates DOM elements dynamically
-- Adds smooth animations
-
-### `createAddQuoteForm()`
-Handles the addition of new quotes:
-- Validates user input
-- Creates new quote object
-- Updates quotes array
-- Refreshes category filter
-- Provides user feedback
-
-### `updateCategoryFilter()`
-Manages the category dropdown:
-- Extracts unique categories
-- Dynamically creates option elements
-- Maintains user's current selection
-
-### `handleCategoryChange()`
-Responds to category filter changes:
-- Updates selected category
-- Displays filtered quote
-
-### `initializeApp()`
-Sets up the application:
-- Attaches event listeners
-- Initializes UI components
-- Displays first quote
-
-## Advanced Techniques Demonstrated
-
-### 1. Event Delegation
-```javascript
-newQuoteText.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    newQuoteCategory.focus();
-  }
-});
-```
-
-### 2. Dynamic CSS Injection
-```javascript
-const style = document.createElement('style');
-style.textContent = `@keyframes slideIn { ... }`;
-document.head.appendChild(style);
-```
-
-### 3. Notification System
-Custom notification function creates temporary DOM elements:
-```javascript
-function showNotification(message) {
-  const notification = document.createElement('div');
-  // ... styling and positioning
-  document.body.appendChild(notification);
-  setTimeout(() => notification.remove(), 3000);
+function saveQuotes() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(quotes));
 }
 ```
 
-### 4. Smooth Transitions
-Opacity-based fade effects using setTimeout:
+#### Automatic Loading
+On app initialization, quotes are loaded from local storage:
 ```javascript
-quoteDisplay.style.opacity = '0';
-setTimeout(() => {
-  quoteDisplay.style.transition = 'opacity 0.5s ease-in';
-  quoteDisplay.style.opacity = '1';
-}, 10);
+function loadQuotes() {
+  const storedQuotes = localStorage.getItem(STORAGE_KEY);
+  if (storedQuotes) {
+    quotes = JSON.parse(storedQuotes);
+  } else {
+    quotes = [...defaultQuotes];
+    saveQuotes();
+  }
+}
 ```
 
-### 5. State Management
-Using JavaScript variables to track application state:
+#### Benefits
+- **Persistent Data**: Quotes survive browser restarts
+- **No Server Required**: Everything stored locally
+- **Instant Access**: No loading delays
+- **Privacy**: Data never leaves the browser
+
+### Session Storage Features
+
+#### Last Viewed Quote Tracking
+Stores the most recently displayed quote:
 ```javascript
-let selectedCategory = "all";
+function saveLastViewedQuote(quote) {
+  sessionStorage.setItem(SESSION_LAST_QUOTE_KEY, JSON.stringify(quote));
+}
 ```
 
-## Usage Instructions
-
-### Setup
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd alx_fe_javascript/dom-manipulation
+#### View Count Tracking
+Counts how many quotes viewed in current session:
+```javascript
+let viewCount = parseInt(sessionStorage.getItem(SESSION_VIEW_COUNT_KEY) || '0');
+viewCount++;
+sessionStorage.setItem(SESSION_VIEW_COUNT_KEY, viewCount.toString());
 ```
 
-2. Open `index.html` in a web browser
+#### Benefits
+- **Session-Specific Data**: Resets when browser closes
+- **Lightweight**: Only stores temporary session data
+- **User Experience**: Can restore last viewed quote
 
-### Using the Application
+## JSON Import/Export
 
-1. **View Quotes**
-   - Click "Show New Quote" to display a random quote
-   - The quote and its category will appear in the display area
+### Export Functionality
 
-2. **Filter by Category**
-   - Use the dropdown menu to select a specific category
-   - Click "Show New Quote" to see quotes from that category
+#### Creating JSON File
+```javascript
+function exportToJsonFile() {
+  const jsonString = JSON.stringify(quotes, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `quotes_backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  
+  URL.revokeObjectURL(url);
+}
+```
 
-3. **Add New Quotes**
-   - Enter quote text in the first input field
-   - Enter category name in the second input field
-   - Click "Add Quote" or press Enter
-   - The new quote is immediately available
+#### Features
+- **Formatted JSON**: 2-space indentation for readability
+- **Automatic Filename**: Includes current date
+- **Blob API**: Creates downloadable file in browser
+- **Memory Cleanup**: Revokes object URL after download
 
-## Learning Outcomes
+### Import Functionality
 
-### DOM Manipulation Skills
-- Creating elements with `createElement()`
-- Modifying element properties and content
-- Adding/removing elements from the DOM
-- Managing element classes and styles
-
-### JavaScript Concepts
-- Array methods (filter, map, push)
-- Event handling and listeners
-- Conditional logic
-- Template literals
-- ES6 Set for unique values
-- Arrow functions
-
-### Best Practices
-- Input validation
-- User feedback (notifications)
-- Keyboard accessibility (Enter key support)
-- Smooth animations for better UX
-- Code organization with functions
-- Comments and documentation
-
-## Browser Compatibility
-Works in all modern browsers:
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## Future Enhancements
-- Local storage persistence
-- Export/import quotes
-- Search functionality
-- Quote editing and deletion
-- Social sharing features
-- Favorite quotes collection
-
-## Technical Requirements Met
-✅ Advanced DOM manipulation  
-✅ Dynamic content generation  
-✅ Event handling  
-✅ Array management  
-✅ User input validation  
-✅ Real-time UI updates  
-✅ Category filtering  
-✅ No framework dependencies  
-
-## License
-This project is for educational purposes as part of the ALX Frontend JavaScript course.
-
-## Author
-ALX Frontend Engineering Student
+#### Reading JSON Files
+```javascript
+function importFromJsonFile(event) {
+  const fileReader = new FileReader();
+  
+  fileReader.onload = function(e) {
+    const importedQuotes = JSON.parse(e.target.result);
+    
+    // Validation
+    if (!Array.isArray(importedQuotes)) {
+      throw new Error('Invalid format');
+    }
+    
+    // Merge or replace logic
+    const shouldReplace = confirm('Replace or merge?');
+    
+    if (shouldReplace) {
+      quotes = validQuotes;

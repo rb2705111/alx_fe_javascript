@@ -20,6 +20,7 @@ let selectedCategory = "all";
 
 // Local Storage key
 const STORAGE_KEY = 'quotes';
+const LAST_FILTER_KEY = 'lastSelectedFilter';
 
 // Session Storage keys
 const SESSION_LAST_QUOTE_KEY = 'lastViewedQuote';

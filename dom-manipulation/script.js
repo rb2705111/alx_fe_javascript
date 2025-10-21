@@ -31,7 +31,63 @@ async function postQuoteToServer(quote) {
     return false;
   }
 }
+/**
+ * Main sync entry point: fetches remote quotes, resolves conflicts (server wins),
+ * and updates local storage and UI.
+ */
+async function syncQuotes() {
+  if (isSyncing) return;
+  isSyncing = true;
+  showNotification('Syncing with server...', 'info');
 
+  try {
+    const response = await fetch(SERVER_URL);
+    if (!response.ok) throw new Error('Failed to fetch server data');
+
+    const posts = await response.json();
+    const remoteQuotes = posts.map(post => ({
+      text: post.title,
+      category: post.body.split('\n')[0].substring(0, 30).trim() || 'Remote'
+    }));
+
+    // Detect conflicts: same text, different category
+    const localMap = new Map(quotes.map(q => [q.text.toLowerCase(), q]));
+    const conflicts = [];
+
+    for (const remote of remoteQuotes) {
+      const key = remote.text.toLowerCase();
+      if (localMap.has(key)) {
+        const local = localMap.get(key);
+        if (local.category !== remote.category) {
+          conflicts.push({ local, remote });
+        }
+      }
+    }
+
+    // Apply "server wins" strategy
+    for (const remote of remoteQuotes) {
+      localMap.set(remote.text.toLowerCase(), remote);
+    }
+
+    quotes = Array.from(localMap.values());
+    saveQuotes();
+    populateCategories();
+
+    if (conflicts.length > 0) {
+      showNotification(`Sync complete. ${conflicts.length} conflict(s) resolved (server wins).`, 'success');
+    } else {
+      showNotification('Sync complete. No conflicts detected.', 'success');
+    }
+
+    localStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
+
+  } catch (error) {
+    console.error('Sync failed:', error);
+    showNotification('Sync failed. Please try again.', 'error');
+  } finally {
+    isSyncing = false;
+  }
+}
 const defaultQuotes = [
   { text: "The only way to do great work is to love what you do.", category: "Motivation" },
   { text: "Life is what happens when you're busy making other plans.", category: "Life" },

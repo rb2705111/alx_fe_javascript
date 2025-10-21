@@ -18,13 +18,20 @@ let quotes = [];
 // Variable to track the currently selected category
 let selectedCategory = "all";
 
-// Local Storage key
+// Local Storage keys
 const STORAGE_KEY = 'quotes';
 const LAST_FILTER_KEY = 'lastSelectedFilter';
+const SERVER_URL = 'https://jsonplaceholder.typicode.com/posts';
+const LAST_SYNC_KEY = 'lastSyncTimestamp';
+const SYNC_INTERVAL = 30000; // 30 seconds
 
 // Session Storage keys
 const SESSION_LAST_QUOTE_KEY = 'lastViewedQuote';
 const SESSION_VIEW_COUNT_KEY = 'quoteViewCount';
+
+// Sync state variables
+let syncIntervalId = null;
+let isSyncing = false;
 
 /**
  * Save the last selected filter to localStorage

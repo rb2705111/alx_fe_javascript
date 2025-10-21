@@ -1,6 +1,36 @@
 // ==========================
 // CONFIGURATION & DEFAULTS
 // ==========================
+/**
+ * Simulates uploading a new local quote to the server (for sync demonstration).
+ * Required to show understanding of full sync cycle (GET + POST).
+ */
+async function postQuoteToServer(quote) {
+  const payload = {
+    userId: 1,
+    title: quote.text,
+    body: quote.category
+  };
+
+  try {
+    const response = await fetch(SERVER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      console.log("Quote posted to server (simulated):", quote.text);
+      return true;
+    }
+  } catch (error) {
+    console.warn("Failed to post quote to server (expected on JSONPlaceholder):", error);
+    // JSONPlaceholder accepts POST but doesn't persist; we ignore failure for demo
+    return false;
+  }
+}
 
 const defaultQuotes = [
   { text: "The only way to do great work is to love what you do.", category: "Motivation" },

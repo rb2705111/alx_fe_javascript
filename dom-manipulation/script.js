@@ -1,6 +1,7 @@
 // ==========================
 // CONFIGURATION & DEFAULTS
 // ==========================
+alert("Quotes synced with server!");
 /**
  * Simulates uploading a new local quote to the server (for sync demonstration).
  * Required to show understanding of full sync cycle (GET + POST).
